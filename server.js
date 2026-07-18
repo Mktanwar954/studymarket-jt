@@ -1189,7 +1189,54 @@ adminRouter.get("/reports", async (req, res, next) => {
 });
 
 app.use("/api/admin", adminRouter);
+// ============ GEMINI AI ROUTES ============
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// 1. CHAT
+app.post('/api/ai/chat', async (req, res) => {
+  try {
+    const { message, history } = req.body;
+    if (!message) return res.status(400).json({ error: 'Message required' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const chat = model.startChat({
+      history: [
+        { role: 'user', parts: [{ text: 'You are StudyMarket-JT AI assistant. Help students with notes, studies, career. Reply in same language as user (Hindi/English/Hinglish).' }] },
+        { role: 'model', parts: [{ text: 'Ready to help!' }] },
+        ...(history || [])
+      ]
+    });
+    const result = await chat.sendMessage(message);
+    res.json({ reply: result.response.text() });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 2. IMAGE GENERATION
+app.post('/api/ai/image', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) return res.status(400).json({ error: 'Prompt required' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-preview-image-generation' });
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+    });
+    const imagePart = result.response.candidates[0].content.parts.find(p => p.inlineData);
+    if (imagePart) res.json({ image: imagePart.inlineData.data, mimeType: imagePart.inlineData.mimeType });
+    else res.status(500).json({ error: 'Image generation failed' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 3. PDF SUMMARY
+app.post('/api/ai/pdf-summary', async (req, res) => {
+  try {
+    const { text, filename } = req.body;
+    if (!text) return res.status(400).json({ error: 'Text required' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(`Summarize this document "${filename}":\n${text}\n\nFormat: Key Topics, Main Points, Important Definitions, Quick Revision Notes`);
+    res.json({ summary: result.response.text() });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
 /* ============================================================
    ERROR HANDLERS (must be last)
    ============================================================ */
