@@ -1198,7 +1198,7 @@ app.post('/api/ai/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
     if (!message) return res.status(400).json({ error: 'Message required' });
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const chat = model.startChat({
       history: [
         { role: 'user', parts: [{ text: 'You are StudyMarket-JT AI assistant. Help students with notes, studies, career. Reply in same language as user (Hindi/English/Hinglish).' }] },
@@ -1232,7 +1232,7 @@ app.post('/api/ai/pdf-summary', async (req, res) => {
   try {
     const { text, filename } = req.body;
     if (!text) return res.status(400).json({ error: 'Text required' });
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const result = await model.generateContent(`Summarize this document "${filename}":\n${text}\n\nFormat: Key Topics, Main Points, Important Definitions, Quick Revision Notes`);
     res.json({ summary: result.response.text() });
   } catch (err) { res.status(500).json({ error: err.message }); }
