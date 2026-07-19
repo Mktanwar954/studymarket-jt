@@ -1198,7 +1198,7 @@ app.post('/api/ai/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
     if (!message) return res.status(400).json({ error: 'Message required' });
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const chat = model.startChat({
       history: [
         { role: 'user', parts: [{ text: 'You are StudyMarket-JT AI assistant. Help students with notes, studies, career. Reply in same language as user (Hindi/English/Hinglish).' }] },
@@ -1216,7 +1216,7 @@ app.post('/api/ai/image', async (req, res) => {
   try {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ error: 'Prompt required' });
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-preview-image-generation' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-preview-image-generation' });
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
